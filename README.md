@@ -417,8 +417,6 @@ The everything else collection:
 
 ---
 
-If you want automation that actually works, rather than automation that just sounds impressive in meetings, you know where to find us.
-
 This isn't a portfolio. This is an automation arsenal. Every workflow battle-tested. Every template production-ready. Every category rewritten to actually be readable.
 
 Your competitors are using traditional tools and manual processes. You have access to AI-powered automation that would make tech giants envious. The question isn't whether to automate. The question is how quickly you can deploy these workflows before your competition catches up.
