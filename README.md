@@ -1,5 +1,35 @@
 # n8n Automation Portfolio
 
+![Workflow Count](https://img.shields.io/badge/Workflows-290-blue)
+![Categories](https://img.shields.io/badge/Categories-17-green)
+![License](https://img.shields.io/badge/License-MIT-purple)
+![n8n Version](https://img.shields.io/badge/n8n-Compatible-orange)
+
+> **290 battle-ready n8n workflows for AI-driven business automation**  
+> Running n8n workflows doesn't make you an AI engineer—keep building like a normal dev.
+
+## 🚀 Quick Start
+
+1. **Clone this repository**
+   ```bash
+   git clone https://github.com/yllvar/best-n8n-automation.git
+   cd best-n8n-automation
+   ```
+
+2. **Set up environment**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your API keys
+   ```
+
+3. **Choose a workflow** from the [WORKFLOWS.md](./WORKFLOWS.md) index
+
+4. **Import to n8n** and configure credentials
+
+5. **Deploy and dominate** 🎯
+
+---
+
 ## Right, Now What We Have Here...
 
 Is possibly the most ambitious automation portfolio... *in the world.*

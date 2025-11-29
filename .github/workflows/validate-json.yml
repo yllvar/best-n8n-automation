@@ -1,0 +1,113 @@
+name: Validate JSON Workflows
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate-json:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install jq
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jq
+        
+    - name: Validate JSON files
+      run: |
+        echo "Validating all JSON workflow files..."
+        find . -name "*.json" -type f -not -path "./.github/*" | while read file; do
+          echo "Validating $file"
+          if ! jq empty "$file" 2>/dev/null; then
+            echo "❌ JSON validation failed for $file"
+            jq . "$file" 2>&1 | head -20
+            exit 1
+          else
+            echo "✅ $file is valid JSON"
+          fi
+        done
+        
+    - name: Check workflow structure
+      run: |
+        echo "Checking workflow structure..."
+        find . -name "*.json" -type f -not -path "./.github/*" | while read file; do
+          # Check for required n8n workflow fields
+          if ! jq -e '.nodes' "$file" > /dev/null; then
+            echo "❌ Missing 'nodes' field in $file"
+            exit 1
+          fi
+          
+          if ! jq -e '.connections' "$file" > /dev/null; then
+            echo "❌ Missing 'connections' field in $file"
+            exit 1
+          fi
+          
+          echo "✅ $file has valid n8n structure"
+        done
+        
+    - name: Check for sensitive data
+      run: |
+        echo "Checking for potential sensitive data..."
+        PATTERNS=(
+          "sk-[a-zA-Z0-9]{48}"  # OpenAI API keys
+          "ghp_[a-zA-Z0-9]{36}"  # GitHub tokens
+          "xoxb-[0-9]{13}-[0-9]{13}-[a-zA-Z0-9]{24}"  # Slack bot tokens
+          "[a-zA-Z0-9_-]{27}\.[a-zA-Z0-9_-]{33}"  # Google service account keys
+        )
+        
+        found_sensitive=false
+        for pattern in "${PATTERNS[@]}"; do
+          if grep -rE "$pattern" . --include="*.json" --exclude-dir=".github" > /dev/null; then
+            echo "❌ Potential sensitive data found with pattern: $pattern"
+            grep -rnE "$pattern" . --include="*.json" --exclude-dir=".github" | head -5
+            found_sensitive=true
+          fi
+        done
+        
+        if [ "$found_sensitive" = true ]; then
+          echo "❌ Please remove sensitive data from workflows"
+          exit 1
+        else
+          echo "✅ No obvious sensitive data detected"
+        fi
+        
+    - name: Validate file naming
+      run: |
+        echo "Checking file naming conventions..."
+        find . -name "*.json" -type f -not -path "./.github/*" | while read file; do
+          filename=$(basename "$file")
+          # Check for problematic characters
+          if [[ "$filename" =~ [^a-zA-Z0-9_-] ]]; then
+            echo "⚠️  $filename contains special characters - consider renaming"
+          fi
+          
+          # Check for reasonable length
+          if [ ${#filename} -gt 100 ]; then
+            echo "⚠️  $filename is very long - consider shortening"
+          fi
+        done
+        
+    - name: Generate workflow stats
+      run: |
+        echo "Generating workflow statistics..."
+        total_files=$(find . -name "*.json" -type f -not -path "./.github/*" | wc -l)
+        echo "Total workflow files: $total_files"
+        
+        echo "Files by directory:"
+        find . -name "*.json" -type f -not -path "./.github/*" | sed 's|/[^/]*$||' | sort | uniq -c | sort -nr
+        
+    - name: Success message
+      run: |
+        echo "🎉 All validations passed!"
+        echo "Repository is ready for deployment!"
